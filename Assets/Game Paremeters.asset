@@ -10,6 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3d8d3011f8b81fb40a39cc97006a0f49, type: 3}
-  m_Name: New Game Paremeters
+  m_Name: Game Paremeters
   m_EditorClassIdentifier: 
-  force: 5
+  playerForce: 5
+  wallForce: 2

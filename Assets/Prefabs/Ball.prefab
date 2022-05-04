@@ -125,4 +125,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a83788aa0a3afe74c9e0aeea240c479e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  gameParam: {fileID: 11400000, guid: 7cf63133571ad544a85dd4ffc0b92644, type: 2}
+  side1Mask:
+    serializedVersion: 2
+    m_Bits: 64
+  side2Mask:
+    serializedVersion: 2
+    m_Bits: 128
+  netMask:
+    serializedVersion: 2
+    m_Bits: 256
