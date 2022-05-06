@@ -6,10 +6,18 @@ namespace Assets.Scripts
 	[CreateAssetMenu(fileName = "New Game Paremeters", menuName = "Scriptable Object/Game Parameters")]
 	public class GameParam : ScriptableObject
 	{
-		[SerializeField] private float playerForce;
-		[SerializeField] private float wallForce;
+		[SerializeField] private float playerHForce;
+		[SerializeField] private float playerVForce;
+		[SerializeField] private float playerVDiffMultiplier;
+		[SerializeField] private float wallHForce;
+		[SerializeField] private float wallVForce;
+		[SerializeField] private float wallVDiffMultiplier;
 
-		public float PlayerForce { get => playerForce; }
-		public float WallForce { get => wallForce; }
+		public float PlayerHForce { get => playerHForce; }
+		public float PlayerVForce { get => playerVForce; }
+		public float PlayerVDiffMultiplier { get => playerVDiffMultiplier; }
+		public float WallHForce { get => wallHForce; }
+		public float WallVForce { get => wallVForce; }
+		public float WallVDiffMultiplier { get => wallVDiffMultiplier; }
 	}
 }

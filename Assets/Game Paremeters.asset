@@ -12,5 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3d8d3011f8b81fb40a39cc97006a0f49, type: 3}
   m_Name: Game Paremeters
   m_EditorClassIdentifier: 
-  playerForce: 5
-  wallForce: 2
+  playerHForce: 0.8
+  playerVForce: 0.9
+  playerVDiffMultiplier: 1
+  wallHForce: 1.5
+  wallVForce: 1.8
+  wallVDiffMultiplier: 2
