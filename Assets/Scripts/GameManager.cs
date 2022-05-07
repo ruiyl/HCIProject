@@ -1,14 +1,16 @@
 ﻿using UnityEngine;
 using UnityEngine.EventSystems;
 using TMPro;
+using System.Collections.Generic;
+using System.Collections;
 
 namespace Assets.Scripts
 {
 	public enum Side
 	{
 		None = 0,
-		Player = 1,
-		NPC = 2,
+		Home = 1,
+		Away = 2,
 	}
 
 	public class GameManager : MonoBehaviour
@@ -18,7 +20,8 @@ namespace Assets.Scripts
 		[SerializeField] private Transform boundaryT;
 		[SerializeField] private Ball ballPrefab;
 		[SerializeField] private GameParam gameParam;
-		[SerializeField] private WallOpponent wall;
+		[SerializeField] private Player homePlayer;
+		[SerializeField] private Player awayPlayer;
 		[SerializeField] private HitArea hitArea;
 		[SerializeField] private TextMeshProUGUI scorePlayerT;
 		[SerializeField] private TextMeshProUGUI scoreNpcT;
@@ -27,28 +30,49 @@ namespace Assets.Scripts
 		private Ball ball;
 		private Table table;
 		private int playerScore;
-		private int npcScore;
+		private int opponentScore;
 		private Side lastTableSideHit;
 		private Side lastHitter;
 		private float announcementEnd;
+		private Dictionary<Side, Player> players;
 
 		public Table GameTable { get => table; }
 
 		private const float ANNOUNCEMENT_DURATION = 1f;
+		private const string READY = "READY!";
+		private const string PLAYER_SCORE = "PLAYER: {0}";
+		private const string PLAYER_GET = "Player got one!";
+		private const string OPPONENT_SCORE = "OPPONENT: {0}";
 		private const string PLAYER_FOUL = "Player's Foul!";
+		private const string OPPONENT_FOUL = "Opponent's Foul!";
+		private const string OPPONENT_GET = "Opponent got one!";
 
 		private void Awake()
 		{
 			table = new Table(points[0], points[1], points[2], points[3]);
-			wall.SetReferences(table);
-			hitArea.HitEvent += HitBall;
+			players = new Dictionary<Side, Player>()
+			{
+				[Side.Home] = homePlayer,
+				[Side.Away] = awayPlayer,
+			};
+			homePlayer.InitAsLocalPlayer(gameParam, table, Side.Home, hitArea);
+			awayPlayer.InitAsNpc(gameParam, table, Side.Away);
+			foreach (Player p in players.Values)
+			{
+				p.RequestBallHitting = OnPlayerPreHitBall;
+			}
+		}
+
+		private void Start()
+		{
+			SpawnBall();
 		}
 
 		private void Update()
 		{
 			if (ball && ball.BallState == Ball.State.Play && !IsBallInside(ball.transform.position, boundaryT))
 			{
-				GiveScore(lastTableSideHit == Side.None ? Side.Player : lastTableSideHit);
+				LoseScore(lastTableSideHit == Side.None ? lastHitter : lastTableSideHit);
 				SpawnBall();
 			}
 			if (Time.time > announcementEnd)
@@ -60,7 +84,6 @@ namespace Assets.Scripts
 		public void Found()
 		{
 			gameObject.SetActive(true);
-			SpawnBall();
 		}
 
 		public void Lost()
@@ -74,15 +97,29 @@ namespace Assets.Scripts
 			{
 				Destroy(ball.gameObject);
 			}
+			StartCoroutine(SpawnBallTask());
+		}
+
+		private IEnumerator SpawnBallTask()
+		{
+			if (announcementEnd < float.MaxValue)
+			{
+				yield return new WaitUntil(() => Time.time >= announcementEnd);
+			}
+			AddAnnoucement(READY, ANNOUNCEMENT_DURATION);
+			yield return new WaitForSeconds(ANNOUNCEMENT_DURATION);
 			ball = Instantiate(ballPrefab);
 			ball.SetStartingState(cam.transform, table);
 			ball.HitEvent += OnBallHit;
-			ball.HitTableSide1Event += OnHitTableSide1;
-			ball.HitTableSide2Event += OnHitTableSide2;
-			ball.HitWallEvent += OnHitWall;
+			ball.HitTableEvent += OnBallHitTable;
 			ball.BallStopEvent += OnBallStop;
 			lastTableSideHit = Side.None;
 			lastHitter = Side.None;
+
+			foreach (Player p in players.Values)
+			{
+				p.SetCurrentBall(ball);
+			}
 		}
 
 		public bool IsBallInside(Vector3 ballPos, Transform boundary)
@@ -93,99 +130,82 @@ namespace Assets.Scripts
 			return (Mathf.Abs(xOffset) <= boundary.localScale.x / 2f) && (Mathf.Abs(yOffset) <= boundary.localScale.y / 2f);
 		}
 
-		public void HitBall(Vector2 target)
+		private bool OnPlayerPreHitBall(Side hitter)
 		{
-			if (lastTableSideHit == Side.NPC || ball.CurrentSide == Side.NPC)
+			if (lastTableSideHit == Side.None && lastHitter == Side.None)
 			{
-				OnPlayerFoul();
-				return;
+				return true;
 			}
-			Vector3 xDir = (target.x - 0.5f) * table.Width * table.Right;
-			Vector3 zDir = table.Length * target.y * table.Forward;
-			float ballHeightOffset = ball.transform.position.y - table.Position.y;
-			Vector3 hDir = xDir + zDir + table.Position - ball.transform.position - (Vector3.up * ballHeightOffset);
-			Vector3 vForce = (hDir.magnitude * gameParam.PlayerVForce - ballHeightOffset * gameParam.PlayerVDiffMultiplier) * Vector3.up;
-			Vector3 force = hDir * gameParam.PlayerHForce + vForce;
-			ball.Hit(force, Side.Player, true);
+			if (lastHitter == hitter)
+			{
+				OnPlayerFoul(hitter);
+				Debug.Log("Foul 1");
+				return false;
+			}
+			if (lastTableSideHit != hitter)
+			{
+				OnPlayerFoul(hitter);
+				Debug.Log("Foul 2");
+				return false;
+			}
+			if (ball.CurrentSide != hitter)
+			{
+				OnPlayerFoul(hitter);
+				Debug.Log("Foul 3");
+				return false;
+			}
+			return true;
 		}
 
 		private void OnBallHit(Side hitter)
 		{
-			if (lastHitter == hitter)
-			{
-				if (hitter == Side.Player)
-				{
-					OnPlayerFoul();
-				}
-				else
-				{
-					GiveScore(hitter);
-					SpawnBall();
-				}
-			}
-			else
-			{
-				lastHitter = hitter;
-			}
+			lastHitter = hitter;
 		}
 
-		private void OnHitWall()
+		private void OnBallHitTable(Side tableSideHit)
 		{
-			if (lastTableSideHit == Side.Player)
+			if (lastTableSideHit == tableSideHit)
 			{
-				OnPlayerFoul();
-			}
-		}
-
-		private void OnHitTableSide1()
-		{
-			OnHitTable(Side.Player);
-		}
-
-		private void OnHitTableSide2()
-		{
-			if (lastTableSideHit == Side.None)
-			{
-				OnPlayerFoul();
-				return;
-			}
-			OnHitTable(Side.NPC);
-		}
-
-		private void OnHitTable(Side side)
-		{
-			if (lastTableSideHit == side)
-			{
-				GiveScore(side);
+				LoseScore(tableSideHit);
 				SpawnBall();
 			}
 			else
 			{
-				lastTableSideHit = side;
+				if (lastTableSideHit == Side.None && lastHitter != tableSideHit)
+				{
+					OnPlayerFoul(lastHitter);
+					Debug.Log("Foul 4");
+				}
+				else
+				{
+					lastTableSideHit = tableSideHit;
+				}
 			}
 		}
 
 		private void OnBallStop()
 		{
-			GiveScore(lastTableSideHit);
+			LoseScore(lastTableSideHit);
 		}
 
-		private void GiveScore(Side lostSide)
+		private void LoseScore(Side lostSide)
 		{
-			TextMeshProUGUI text = null;
-			int score = 0;
-			string scoreS = "";
+			TextMeshProUGUI text;
+			int score;
+			string scoreS;
 			switch (lostSide)
 			{
-				case Side.NPC:
+				case Side.Away:
 					text = scorePlayerT;
 					score = ++playerScore;
-					scoreS = "YOU: {0}";
+					scoreS = PLAYER_SCORE;
+					AddAnnoucement(PLAYER_GET, ANNOUNCEMENT_DURATION);
 					break;
-				case Side.Player:
+				case Side.Home:
 					text = scoreNpcT;
-					score = ++npcScore;
-					scoreS = "NPC: {0}";
+					score = ++opponentScore;
+					scoreS = OPPONENT_SCORE;
+					AddAnnoucement(OPPONENT_GET, ANNOUNCEMENT_DURATION);
 					break;
 				default:
 					return;
@@ -193,18 +213,36 @@ namespace Assets.Scripts
 			text.text = string.Format(scoreS, score);
 		}
 
-		private void OnPlayerFoul()
+		private void OnPlayerFoul(Side foulSide)
 		{
-			GiveScore(Side.Player);
+			LoseScore(foulSide);
 			SpawnBall();
-			AddAnnoucement(PLAYER_FOUL);
+			switch (foulSide)
+			{
+				case Side.None:
+					Debug.LogError("Invalid side");
+					break;
+				case Side.Home:
+					AddAnnoucement(PLAYER_FOUL, ANNOUNCEMENT_DURATION);
+					break;
+				case Side.Away:
+					AddAnnoucement(OPPONENT_FOUL,ANNOUNCEMENT_DURATION);
+					break;
+			}
 		}
 
-		private void AddAnnoucement(string text)
+		private void AddAnnoucement(string text, float duration)
 		{
 			announcementT.text = text;
 			announcementT.gameObject.SetActive(true);
-			announcementEnd = Time.time + ANNOUNCEMENT_DURATION;
+			if (duration > 0f)
+			{
+				announcementEnd = Time.time + duration;
+			}
+			else
+			{
+				announcementEnd = float.MaxValue;
+			}
 		}
 	}
 

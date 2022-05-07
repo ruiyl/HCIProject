@@ -223,16 +223,6 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 1785804652552014010, guid: dca244962dd16b04db05f3c0484164dd,
-        type: 3}
-      propertyPath: m_AnchoredPosition.x
-      value: -75
-      objectReference: {fileID: 0}
-    - target: {fileID: 2238968582654534446, guid: dca244962dd16b04db05f3c0484164dd,
-        type: 3}
-      propertyPath: m_enableWordWrapping
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 7531070266355841524, guid: dca244962dd16b04db05f3c0484164dd,
         type: 3}
       propertyPath: m_Name
@@ -243,6 +233,11 @@ PrefabInstance:
       propertyPath: cam
       value: 
       objectReference: {fileID: 1835552279}
+    - target: {fileID: 7531070266355841525, guid: dca244962dd16b04db05f3c0484164dd,
+        type: 3}
+      propertyPath: homePlayer
+      value: 
+      objectReference: {fileID: 1835552283}
     - target: {fileID: 7531070266355841527, guid: dca244962dd16b04db05f3c0484164dd,
         type: 3}
       propertyPath: m_RootOrder
@@ -298,21 +293,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 7531070268069768426, guid: dca244962dd16b04db05f3c0484164dd,
-        type: 3}
-      propertyPath: playerT
-      value: 
-      objectReference: {fileID: 1835552280}
-    - target: {fileID: 7760107650251831967, guid: dca244962dd16b04db05f3c0484164dd,
-        type: 3}
-      propertyPath: m_enableWordWrapping
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8592833030546851153, guid: dca244962dd16b04db05f3c0484164dd,
-        type: 3}
-      propertyPath: m_AnchoredPosition.x
-      value: 75
-      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: dca244962dd16b04db05f3c0484164dd, type: 3}
 --- !u!1 &1835552277
@@ -328,6 +308,7 @@ GameObject:
   - component: {fileID: 1835552278}
   - component: {fileID: 1835552282}
   - component: {fileID: 1835552281}
+  - component: {fileID: 1835552283}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -429,3 +410,15 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 4294967295
   m_MaxRayIntersections: 0
+--- !u!114 &1835552283
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1835552277}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0ea08014893f91a4d9d14e019282285c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

@@ -27,11 +27,11 @@ namespace Assets.Scripts
 
 		public UnityAction<PointerEventData> PointerDownEvent;
 		public UnityAction<Side> HitEvent;
-		public UnityAction HitTableSide1Event;
-		public UnityAction HitTableSide2Event;
+		public UnityAction<Side> HitTableEvent;
 		public UnityAction HitNetEvent;
 		public UnityAction HitWallEvent;
 		public UnityAction BallStopEvent;
+		public UnityAction<Side> CrossSideEvent;
 
 		private const float BALL_STOP_TRESHOLD = 0.5f;
 
@@ -57,6 +57,7 @@ namespace Assets.Scripts
 			{
 				state = State.Play;
 				rb.isKinematic = false;
+				rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
 			}
 			if (clearVelocity)
 			{
@@ -83,7 +84,12 @@ namespace Assets.Scripts
 							BallStopEvent?.Invoke();
 						}
 					}
-					currentSide = Vector3.Dot(transform.position - table.Position, table.Forward) >= 0f ? Side.NPC : Side.Player;
+					Side side = Vector3.Dot(transform.position - table.Position, table.Forward) >= 0f ? Side.Away : Side.Home;
+					if (currentSide != side)
+					{
+						currentSide = side;
+						CrossSideEvent?.Invoke(currentSide);
+					}
 					break;
 			}
 		}
@@ -93,11 +99,11 @@ namespace Assets.Scripts
 			LayerMask otherL = 1 << collision.gameObject.layer;
 			if (otherL == side1Mask)
 			{
-				HitTableSide1Event?.Invoke();
+				HitTableEvent?.Invoke(Side.Home);
 			}
 			else if (otherL == side2Mask)
 			{
-				HitTableSide2Event?.Invoke();
+				HitTableEvent?.Invoke(Side.Away);
 			}
 			else if (otherL == netMask)
 			{
@@ -119,7 +125,7 @@ namespace Assets.Scripts
 		public void SetStartingState(Transform cameraT, Table table)
 		{
 			state = State.Start;
-			currentSide = Side.Player;
+			currentSide = Side.Home;
 			this.cameraT = cameraT;
 			rb.isKinematic = true;
 			this.table = table;
