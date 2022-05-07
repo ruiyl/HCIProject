@@ -3,6 +3,7 @@ using UnityEngine;
 
 namespace Assets.Scripts
 {
+	// The player who is holding the device
 	public class LocalPlayerLogic : PlayerLogic
 	{
 		public LocalPlayerLogic(GameParam gameParam, Table table, Side playingSide, Player playerComp, HitArea hitArea) : base(gameParam, table, playingSide, playerComp)
@@ -10,6 +11,7 @@ namespace Assets.Scripts
 			hitArea.HitEvent += HitBall;
 		}
 
+		// Convert normalised position on Rectangle UI to another player's table-side position, then hit the ball with appropriate force
 		public void HitBall(Vector2 target)
 		{
 			if (!playerComp.CurrentBall)

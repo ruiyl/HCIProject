@@ -13,6 +13,7 @@ namespace Assets.Scripts
 		Away = 2,
 	}
 
+	// Manage and initiate game session
 	public class GameManager : MonoBehaviour
 	{
 		[SerializeField] private Camera cam;
@@ -50,12 +51,12 @@ namespace Assets.Scripts
 		private void Awake()
 		{
 			table = new Table(points[0], points[1], points[2], points[3]);
-			players = new Dictionary<Side, Player>()
+			players = new Dictionary<Side, Player>() // Assign players' sides
 			{
 				[Side.Home] = homePlayer,
 				[Side.Away] = awayPlayer,
 			};
-			homePlayer.InitAsLocalPlayer(gameParam, table, Side.Home, hitArea);
+			homePlayer.InitAsLocalPlayer(gameParam, table, Side.Home, hitArea); // Create players
 			awayPlayer.InitAsNpc(gameParam, table, Side.Away);
 			foreach (Player p in players.Values)
 			{
@@ -70,27 +71,30 @@ namespace Assets.Scripts
 
 		private void Update()
 		{
-			if (ball && ball.BallState == Ball.State.Play && !IsBallInside(ball.transform.position, boundaryT))
+			if (ball && ball.BallState == Ball.State.Play && !IsBallInside(ball.transform.position, boundaryT)) // Check if ball is out of bound
 			{
 				LoseScore(lastTableSideHit == Side.None ? lastHitter : lastTableSideHit);
 				SpawnBall();
 			}
-			if (Time.time > announcementEnd)
+			if (Time.time > announcementEnd) // Check if announcement should be cleared
 			{
 				announcementT.gameObject.SetActive(false);
 			}
 		}
 
+		// Called by Vuforia Image tracking when found the image
 		public void Found()
 		{
 			gameObject.SetActive(true);
 		}
 
+		// Called by Vuforia Image tracking when lost the image
 		public void Lost()
 		{
 			gameObject.SetActive(false);
 		}
 
+		// Destroy current ball and spawn new one at a delay
 		public void SpawnBall()
 		{
 			if (ball)
@@ -100,9 +104,10 @@ namespace Assets.Scripts
 			StartCoroutine(SpawnBallTask());
 		}
 
+		// Spawn ball and link all related events after a delay
 		private IEnumerator SpawnBallTask()
 		{
-			if (announcementEnd < float.MaxValue)
+			if (announcementEnd < float.MaxValue) // Wait for current announcement to end, if any
 			{
 				yield return new WaitUntil(() => Time.time >= announcementEnd);
 			}
@@ -122,6 +127,7 @@ namespace Assets.Scripts
 			}
 		}
 
+		// Return if ball is out of bound or not, not checking z-axis since we don't know how far player will move back
 		public bool IsBallInside(Vector3 ballPos, Transform boundary)
 		{
 			Vector3 ballOffset = ballPos - boundary.position;
@@ -130,6 +136,7 @@ namespace Assets.Scripts
 			return (Mathf.Abs(xOffset) <= boundary.localScale.x / 2f) && (Mathf.Abs(yOffset) <= boundary.localScale.y / 2f);
 		}
 
+		// Check if the hitter can hit the ball. If not, foul the hitter
 		private bool OnPlayerPreHitBall(Side hitter)
 		{
 			if (lastTableSideHit == Side.None && lastHitter == Side.None)
@@ -162,6 +169,7 @@ namespace Assets.Scripts
 			lastHitter = hitter;
 		}
 
+		// When ball hit the table, check if score should be given or there is any foul
 		private void OnBallHitTable(Side tableSideHit)
 		{
 			if (lastTableSideHit == tableSideHit)
@@ -188,6 +196,7 @@ namespace Assets.Scripts
 			LoseScore(lastTableSideHit);
 		}
 
+		// Display scoring and its announcement
 		private void LoseScore(Side lostSide)
 		{
 			TextMeshProUGUI text;
@@ -213,6 +222,7 @@ namespace Assets.Scripts
 			text.text = string.Format(scoreS, score);
 		}
 
+		// A player just broke the rules, give point to another, spawn a new ball
 		private void OnPlayerFoul(Side foulSide)
 		{
 			LoseScore(foulSide);
@@ -231,6 +241,7 @@ namespace Assets.Scripts
 			}
 		}
 
+		// Set showing announcement
 		private void AddAnnoucement(string text, float duration)
 		{
 			announcementT.text = text;
@@ -246,6 +257,7 @@ namespace Assets.Scripts
 		}
 	}
 
+	// Hold all positional and directional info of the table
 	public struct Table
 	{
 		public Vector3 Position { get; private set; }

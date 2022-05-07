@@ -3,6 +3,7 @@ using UnityEngine;
 
 namespace Assets.Scripts
 {
+	// Holds logic for Npc player
 	public class NpcPlayerLogic : PlayerLogic
 	{
 		private bool shouldFollow;
@@ -17,6 +18,7 @@ namespace Assets.Scripts
 			startPos = playerComp.Position;
 		}
 
+		// Reset behaviour when getting a new ball
 		public override void OnGetBall()
 		{
 			playerComp.CurrentBall.CrossSideEvent += OnBallCrossSide;
@@ -25,6 +27,7 @@ namespace Assets.Scripts
 			shouldFollow = false;
 		}
 
+		// When ball goes to another player's side, reset behaviour as well
 		private void OnBallCrossSide(Side side)
 		{
 			if (side != playingSide)
@@ -34,6 +37,7 @@ namespace Assets.Scripts
 			}
 		}
 
+		// When the ball hit this table's side once, start following it
 		private void OnBallHitTable(Side side)
 		{
 			if (side == playingSide && !hasHit)
@@ -47,7 +51,7 @@ namespace Assets.Scripts
 			if (playerComp.CurrentBall && shouldFollow)
 			{
 				bool isOnThisSide = playerComp.CurrentBall.CurrentSide == playingSide;
-				if (isOnThisSide)
+				if (isOnThisSide) // Move toward the ball when it is on this side. Double check with shouldFollow variable
 				{
 					Vector3 targetPos = playerComp.CurrentBall.transform.position;
 					Vector3 targetOffset = targetPos - playerComp.Position;
@@ -57,12 +61,13 @@ namespace Assets.Scripts
 					}
 				}
 			}
-			else
+			else // Otherwise, move toward the starting position
 			{
 				playerComp.Position = Vector3.MoveTowards(playerComp.Position, startPos, SPEED * Time.deltaTime);
 			}
 		}
 
+		// When collider hits the ball, random the ball landing position, then hit the ball with appropriate force
 		public override void OnTriggerEnter(Collider collision)
 		{
 			if (collision.gameObject.TryGetComponent(out Ball ball))

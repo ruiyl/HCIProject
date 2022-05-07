@@ -3,6 +3,7 @@ using UnityEngine;
 
 namespace Assets.Scripts
 {
+	// Hold all parameters for easy adjusting
 	[CreateAssetMenu(fileName = "New Game Paremeters", menuName = "Scriptable Object/Game Parameters")]
 	public class GameParam : ScriptableObject
 	{

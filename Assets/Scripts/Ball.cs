@@ -1,12 +1,11 @@
-﻿using System.Collections;
-using UnityEngine;
-using UnityEngine.Animations;
+﻿using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
 
 namespace Assets.Scripts
 {
-	public class Ball : MonoBehaviour, IPointerDownHandler
+	// Manage ball state and trigger hit events
+	public class Ball : MonoBehaviour
 	{
 		[SerializeField] private LayerMask side1Mask;
 		[SerializeField] private LayerMask side2Mask;
@@ -25,7 +24,6 @@ namespace Assets.Scripts
 		public State BallState { get => state; }
 		public Side CurrentSide { get => currentSide; }
 
-		public UnityAction<PointerEventData> PointerDownEvent;
 		public UnityAction<Side> HitEvent;
 		public UnityAction<Side> HitTableEvent;
 		public UnityAction HitNetEvent;
@@ -46,14 +44,10 @@ namespace Assets.Scripts
 			rb = GetComponent<Rigidbody>();
 		}
 
-		public void OnPointerDown(PointerEventData eventData)
-		{
-			PointerDownEvent?.Invoke(eventData);
-		}
-
+		// Provide means for hitting the ball
 		public void Hit(Vector3 force, Side hitter, bool clearVelocity)
 		{
-			if (state == State.Start)
+			if (state == State.Start) // Trigger on serving shot
 			{
 				state = State.Play;
 				rb.isKinematic = false;
@@ -71,7 +65,7 @@ namespace Assets.Scripts
 		{
 			switch (state)
 			{
-				case State.Start:
+				case State.Start: // Attached to camera
 					transform.position = cameraT.position + (cameraT.forward * 0.2f);
 					transform.rotation = cameraT.rotation;
 					break;
@@ -79,13 +73,13 @@ namespace Assets.Scripts
 					if (contactedObj)
 					{
 						contactTimer += Time.deltaTime;
-						if (contactTimer > BALL_STOP_TRESHOLD)
+						if (contactTimer > BALL_STOP_TRESHOLD) // Check if ball is stuck
 						{
 							BallStopEvent?.Invoke();
 						}
 					}
 					Side side = Vector3.Dot(transform.position - table.Position, table.Forward) >= 0f ? Side.Away : Side.Home;
-					if (currentSide != side)
+					if (currentSide != side) // Check if ball just crossed table side
 					{
 						currentSide = side;
 						CrossSideEvent?.Invoke(currentSide);
@@ -94,6 +88,7 @@ namespace Assets.Scripts
 			}
 		}
 
+		// Fire appropriate event when hitting objects in specific layers
 		private void OnCollisionEnter(Collision collision)
 		{
 			LayerMask otherL = 1 << collision.gameObject.layer;
@@ -122,6 +117,7 @@ namespace Assets.Scripts
 			contactedObj = null;
 		}
 
+		// Called when first instantiated
 		public void SetStartingState(Transform cameraT, Table table)
 		{
 			state = State.Start;

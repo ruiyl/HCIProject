@@ -4,6 +4,7 @@ using UnityEngine;
 
 namespace Assets.Scripts
 {
+	// Provide MonoBehaviour features for player logic class
 	public class Player : MonoBehaviour
 	{
 		private PlayerLogic logic;
@@ -30,6 +31,7 @@ namespace Assets.Scripts
 			logic.OnGetBall();
 		}
 
+		// Check if can hit the ball before actually hitting it
 		public void HitBall(Vector3 force, Side hitter, bool clearVelocity)
 		{
 			if (RequestBallHitting?.Invoke(hitter) ?? false)
@@ -38,6 +40,7 @@ namespace Assets.Scripts
 			}
 		}
 
+		// Create Npc logic
 		public void InitAsNpc(GameParam gameParam, Table table, Side playingSide)
 		{
 			if (isInit)
@@ -49,6 +52,7 @@ namespace Assets.Scripts
 			isInit = true;
 		}
 
+		// Create Local player logic
 		public void InitAsLocalPlayer(GameParam gameParam, Table table, Side playingSide, HitArea hitArea)
 		{
 			if (isInit)

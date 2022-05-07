@@ -3,6 +3,7 @@ using UnityEngine;
 
 namespace Assets.Scripts
 {
+	// Use only for camera movement in Test scene
 	public class CameraKeyboardController : MonoBehaviour
 	{
 		[SerializeField] private float speed;
