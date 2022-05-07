@@ -16,12 +16,12 @@ namespace Assets.Scripts
 
 		private void Update()
 		{
-			logic.Update();
+			logic?.Update();
 		}
 
 		private void OnTriggerEnter(Collider other)
 		{
-			logic.OnTriggerEnter(other);
+			logic?.OnTriggerEnter(other);
 		}
 
 		public void SetCurrentBall(Ball ball)
